@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "goodforget-rag"
+version = "0.1.0"
+description = "Toy implementation of negative-aware retrieval for selective non-use of evidence in RAG systems."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "nnfct" }]
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+]
+
+[project.optional-dependencies]
+notebook = ["jupyter"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

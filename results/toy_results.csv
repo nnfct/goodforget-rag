@@ -1,0 +1,13 @@
+method,query_id,retrieved_doc_ids,leaked_doc_ids,useful_doc_ids,leaked,num_retrieved,utility_recall,top_score
+Vanilla RAG,q_ev_credit,doc_tax_credit_current|doc_tax_credit_obsolete,doc_tax_credit_obsolete,doc_tax_credit_current,True,2,0.5,0.20709080190543683
+Positive-only RAG,q_ev_credit,doc_tax_credit_current|doc_ev_charging,,doc_ev_charging|doc_tax_credit_current,False,2,1.0,0.2850651658691318
+GoodForget-RAG,q_ev_credit,doc_ev_charging|doc_tax_credit_current,,doc_ev_charging|doc_tax_credit_current,False,2,1.0,0.1417224693223807
+Vanilla RAG,q_password_reset,doc_password_policy_current|doc_password_policy_old,doc_password_policy_old,doc_password_policy_current,True,2,0.5,0.20765086035945962
+Positive-only RAG,q_password_reset,doc_password_policy_current|doc_password_policy_old,doc_password_policy_old,doc_password_policy_current,True,2,0.5,0.501579685015677
+GoodForget-RAG,q_password_reset,doc_password_policy_current|doc_mfa_recovery,,doc_mfa_recovery|doc_password_policy_current,False,2,1.0,0.21912183460351947
+Vanilla RAG,q_medication,doc_medication_general|doc_clinician_consult,,doc_clinician_consult|doc_medication_general,False,2,1.0,0.11064647731875198
+Positive-only RAG,q_medication,doc_medication_general|doc_clinician_consult,,doc_clinician_consult|doc_medication_general,False,2,1.0,0.30042390221382465
+GoodForget-RAG,q_medication,doc_medication_general|doc_clinician_consult,,doc_clinician_consult|doc_medication_general,False,2,1.0,0.10912114942893233
+Vanilla RAG,q_privacy,doc_privacy_policy_current|doc_privacy_policy_archived,doc_privacy_policy_archived,doc_privacy_policy_current,True,2,0.5,0.19540709089677885
+Positive-only RAG,q_privacy,doc_privacy_policy_current|doc_privacy_policy_archived,doc_privacy_policy_archived,doc_privacy_policy_current,True,2,0.5,0.6052805334128473
+GoodForget-RAG,q_privacy,doc_privacy_policy_current|doc_data_retention,,doc_data_retention|doc_privacy_policy_current,False,2,1.0,0.37468755928536857

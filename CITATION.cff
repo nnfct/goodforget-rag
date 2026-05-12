@@ -1,0 +1,7 @@
+cff-version: 1.2.0
+title: "GoodForget-RAG: Negative-Aware Retrieval for Selective Non-Use of Knowledge"
+authors:
+  - name: "nnfct"
+year: 2026
+type: software
+message: "If you use this toy implementation or technical note, please cite it using this metadata."

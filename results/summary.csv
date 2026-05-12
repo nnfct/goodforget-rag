@@ -1,0 +1,4 @@
+method,leakage_rate,utility_recall,empty_context_rate,num_queries
+Vanilla RAG,0.75,0.625,0.0,4
+Positive-only RAG,0.5,0.75,0.0,4
+GoodForget-RAG,0.0,1.0,0.0,4
