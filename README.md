@@ -142,6 +142,8 @@ Outputs:
 
 - `results/hard_negative_pair_summary.csv`
 - `results/hard_negative_pair_cases.csv`
+- `results/hard_negative_pair_pairwise_deltas.csv`
+- `results/label_consistency_check.csv`
 - `docs/hard_negative_pair_report.html`
 - `paper/hard_negative_pair_appendix.md`
 
@@ -150,11 +152,14 @@ The suite generates 8 domains, 10 scenarios per domain, and 4 query variants per
 Conservative result summary from the current run:
 
 - `GoodForget-RAG gamma=0` often leaks badly in hard negative settings, especially under `tfidf_word` and `tfidf_char`.
-- `gamma > 0` improves margins and usually reduces leakage relative to `gamma=0`.
-- GoodForget-RAG improves over Positive-only and Query Rewrite on leakage in several representations, but not on utility.
-- Metadata Filter remains strongest when labels are reliable.
-- Negative Vector Baseline can be close to GoodForget-RAG in some settings, so this suite does not universally distinguish the two.
+- `gamma > 0` improves the safe-forbidden margin and substantially reduces leakage relative to `gamma=0` in the near-duplicate settings.
+- GoodForget-RAG improves over Positive-only and Query Rewrite on leakage in several representations, but it does not improve utility in this suite.
+- Metadata Filter remains strongest when labels are reliable and should be treated as the oracle baseline.
+- Negative Vector Baseline can be close to GoodForget-RAG in some settings, so the current suite does not consistently separate forget-intent penalty from an arithmetic negative-vector baseline across all representations.
 - Higher gamma can hurt utility by suppressing safe near-duplicate documents that mention excluded attributes.
+- The report now includes pairwise delta tables and a label consistency check. Role-like names such as `forbidden_internal_doc` and `stale_or_obsolete_doc` are generator descriptors; the consistency file verifies whether those descriptors match `is_forbidden`.
+
+Conservative claim for citation: The hard negative pair suite shows that `gamma > 0` forget penalties can substantially reduce forbidden retrieval relative to `gamma=0` and Positive-only retrieval in near-duplicate settings. However, GoodForget-RAG does not beat oracle metadata filtering, and the current suite does not consistently separate forget-intent penalty from the arithmetic negative-vector baseline across all representations.
 
 ## Expected Outputs
 

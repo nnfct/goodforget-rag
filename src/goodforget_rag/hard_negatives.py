@@ -179,13 +179,16 @@ def write_hard_negative_report(summary: pd.DataFrame, cases: pd.DataFrame, outpu
     """Write a standalone HTML report for the hard-negative suite."""
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    pairwise = _pairwise_deltas(summary)
+    label_check = pd.read_csv(output_path.parents[1] / "results" / "label_consistency_check.csv")
     gamma = summary[summary["method"].str.startswith("GoodForget-RAG gamma=")]
-    positive = summary[summary["method"].isin(["Positive-only RAG", "Query Rewrite RAG", "GoodForget-RAG gamma=1.0"])]
-    negative = summary[summary["method"].isin(["Negative Vector Baseline", "GoodForget-RAG gamma=1.0"])]
-    helps = cases[cases["case_type"] == "goodforget_helps"].head(40)
-    fails = cases[cases["case_type"] == "goodforget_fails"].head(40)
-    no_effect = cases[cases["case_type"] == "gamma_no_effect"].head(40)
-    hurts = cases[cases["case_type"] == "gamma_hurts_utility"].head(40)
+    positive = summary[summary["method"].isin(["Positive-only RAG", "Query Rewrite RAG", "GoodForget-RAG gamma=0.5"])]
+    negative = summary[summary["method"].isin(["Negative Vector Baseline", "GoodForget-RAG gamma=0.5"])]
+    helps = _representative_cases(cases, "goodforget_helps")
+    fails = _representative_cases(cases, "goodforget_fails")
+    margin_no_selection = _representative_cases(cases, "gamma_changes_margin_not_selection")
+    hurts = _representative_cases(cases, "gamma_hurts_utility")
+    label_note = _label_note(label_check)
     html = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -199,6 +202,8 @@ def write_hard_negative_report(summary: pd.DataFrame, cases: pd.DataFrame, outpu
     h2 {{ margin-top: 28px; }}
     p, li {{ color: #52606d; line-height: 1.55; }}
     .notice {{ background: #fff7ed; border-left: 4px solid #c2410c; padding: 12px; border-radius: 0 8px 8px 0; }}
+    .claim {{ background: #ecfdf5; border-left: 4px solid #047857; padding: 12px; border-radius: 0 8px 8px 0; }}
+    .compact {{ background: #eef2ff; border-left: 4px solid #4338ca; padding: 12px; border-radius: 0 8px 8px 0; }}
     .table-wrap {{ overflow-x: auto; background: white; border: 1px solid #d8dee8; border-radius: 8px; }}
     table {{ border-collapse: collapse; width: 100%; min-width: 900px; font-size: 13px; }}
     th, td {{ padding: 8px 10px; border-bottom: 1px solid #d8dee8; text-align: left; }}
@@ -209,13 +214,30 @@ def write_hard_negative_report(summary: pd.DataFrame, cases: pd.DataFrame, outpu
 <main>
   <h1>Hard Negative Pair Suite</h1>
   <div class="notice">Synthetic retrieval-time control benchmark. Not model unlearning, not guaranteed forgetting, and not proof of semantic forgetting. The purpose is to isolate whether the forget penalty changes near-duplicate rankings.</div>
+  <h2>Compact Interpretation</h2>
+  <div class="compact">
+    <ul>
+      <li><strong>What improved:</strong> this suite creates near-duplicate safe/forbidden pairs where Positive-only and Query Rewrite often retrieve forbidden evidence, making the forget penalty easier to isolate than in the broad validation benchmark.</li>
+      <li><strong>Gamma effect:</strong> gamma &gt; 0 substantially reduces leakage relative to gamma = 0 in most lexical representations and improves the safe-forbidden margin.</li>
+      <li><strong>Against Positive-only / Query Rewrite:</strong> GoodForget gamma=0.5 improves leakage, but does not improve utility.</li>
+      <li><strong>Against Metadata Filter:</strong> GoodForget does not beat oracle metadata filtering when labels are reliable.</li>
+      <li><strong>Against Negative Vector:</strong> GoodForget is not clearly separated from the arithmetic negative-vector baseline across all representations.</li>
+      <li><strong>Main limitations:</strong> synthetic templates, deterministic lexical representations, no LLM answer generation, and possible safe near-duplicate suppression.</li>
+    </ul>
+  </div>
+  <h2>Conservative Claim Box</h2>
+  <div class="claim">The hard negative pair suite shows that gamma &gt; 0 forget penalties can substantially reduce forbidden retrieval relative to gamma=0 and Positive-only retrieval in near-duplicate settings. However, GoodForget-RAG does not beat oracle metadata filtering, and the current suite does not consistently separate forget-intent penalty from the arithmetic negative-vector baseline across all representations.</div>
+  <h2>Label Consistency Check</h2>
+  <p>{label_note}</p>
+  <div class="table-wrap">{_html(_label_report_table(label_check))}</div>
   <h2>Main Result Table</h2><div class="table-wrap">{_html(summary)}</div>
   <h2>Gamma Ablation Table</h2><div class="table-wrap">{_html(gamma)}</div>
+  <h2>Pairwise Delta Tables</h2><div class="table-wrap">{_html(pairwise)}</div>
   <h2>Positive-only vs GoodForget</h2><div class="table-wrap">{_html(positive)}</div>
   <h2>Negative Vector vs GoodForget</h2><div class="table-wrap">{_html(negative)}</div>
   <h2>Cases Where GoodForget Helps</h2><div class="table-wrap">{_html(helps)}</div>
   <h2>Cases Where GoodForget Fails</h2><div class="table-wrap">{_html(fails)}</div>
-  <h2>Cases Where Gamma Has No Effect</h2><div class="table-wrap">{_html(no_effect)}</div>
+  <h2>Cases Where Gamma Changes Margin But Not Final Selection</h2><div class="table-wrap">{_html(margin_no_selection)}</div>
   <h2>Cases Where Gamma Hurts Utility</h2><div class="table-wrap">{_html(hurts)}</div>
   <h2>Conservative Interpretation</h2>
   <p>If gamma=0 matches gamma&gt;0, the negative penalty is not isolated for that representation or case. If Positive-only matches or beats GoodForget, query rewrite may be sufficient in that setting. If Negative Vector Baseline matches GoodForget, this synthetic test does not distinguish the arithmetic baseline from forget-intent penalty for that slice.</p>
@@ -237,25 +259,188 @@ def mine_hard_negative_cases(rows: pd.DataFrame) -> pd.DataFrame:
         aggfunc="first",
     )
     records: list[dict[str, object]] = []
-    lookup = rows.set_index(keys + ["method"])
+    lookup = rows.set_index(keys + ["method"], drop=False)
     for key, values in wide.iterrows():
         query_id, representation = key
         pos_leak = _wide_value(values, "leakage", "Positive-only RAG")
         gf0_leak = _wide_value(values, "leakage", "GoodForget-RAG gamma=0")
-        gf1_leak = _wide_value(values, "leakage", "GoodForget-RAG gamma=1.0")
+        gf05_leak = _wide_value(values, "leakage", "GoodForget-RAG gamma=0.5")
         gf0_util = _wide_value(values, "utility_recall", "GoodForget-RAG gamma=0")
-        gf1_util = _wide_value(values, "utility_recall", "GoodForget-RAG gamma=1.0")
-        gf1_margin = _wide_value(values, "margin_improvement", "GoodForget-RAG gamma=1.0")
-        base_row = lookup.loc[(query_id, representation, "GoodForget-RAG gamma=1.0")].to_dict()
-        if pos_leak > gf1_leak:
-            records.append({**base_row, "case_type": "goodforget_helps", "comparison_note": "GoodForget gamma=1.0 leaked less than Positive-only."})
-        if gf1_leak > 0:
-            records.append({**base_row, "case_type": "goodforget_fails", "comparison_note": "GoodForget gamma=1.0 still selected forbidden evidence."})
-        if abs(float(gf1_margin)) < 1e-9 or gf1_leak == gf0_leak:
-            records.append({**base_row, "case_type": "gamma_no_effect", "comparison_note": "Gamma did not change leakage or margin in this case."})
-        if gf1_util < gf0_util:
+        gf05_util = _wide_value(values, "utility_recall", "GoodForget-RAG gamma=0.5")
+        gf05_margin = _wide_value(values, "margin_improvement", "GoodForget-RAG gamma=0.5")
+        gf0_row = lookup.loc[(query_id, representation, "GoodForget-RAG gamma=0")].to_dict()
+        gf05_row = lookup.loc[(query_id, representation, "GoodForget-RAG gamma=0.5")].to_dict()
+        leakage_reduction = float(pos_leak) - float(gf05_leak)
+        gf0_selection = str(gf0_row.get("retrieved_doc_ids", ""))
+        gf05_selection = str(gf05_row.get("retrieved_doc_ids", ""))
+        base_row = {
+            **gf05_row,
+            "positive_only_leakage": float(pos_leak),
+            "gamma0_leakage": float(gf0_leak),
+            "leakage_reduction_vs_positive": leakage_reduction,
+            "utility_delta_vs_gamma0": float(gf05_util) - float(gf0_util),
+            "selection_changed_vs_gamma0": gf05_selection != gf0_selection,
+        }
+        if leakage_reduction > 0:
+            records.append({**base_row, "case_type": "goodforget_helps", "comparison_note": "GoodForget gamma=0.5 leaked less than Positive-only."})
+        if gf05_leak > 0:
+            records.append({**base_row, "case_type": "goodforget_fails", "comparison_note": "GoodForget gamma=0.5 still selected forbidden evidence."})
+        if abs(float(gf05_margin)) > 1e-9 and gf05_selection == gf0_selection:
+            records.append({**base_row, "case_type": "gamma_changes_margin_not_selection", "comparison_note": "Gamma changed margin but final selected context did not change."})
+        if gf05_util < gf0_util:
             records.append({**base_row, "case_type": "gamma_hurts_utility", "comparison_note": "Gamma reduced utility relative to gamma=0."})
-    return pd.DataFrame(records)
+    return _dedupe_cases(pd.DataFrame(records))
+
+
+def pairwise_deltas(summary: pd.DataFrame) -> pd.DataFrame:
+    """Compare GoodForget gamma=0.5 against requested baselines."""
+
+    return _pairwise_deltas(summary)
+
+
+def label_consistency_check(documents: Sequence[dict[str, object]]) -> pd.DataFrame:
+    """Check doc-id role naming against forbidden labels."""
+
+    rows = []
+    for document in documents:
+        doc_id = str(document["doc_id"])
+        is_forbidden = bool(document.get("is_forbidden", False))
+        expected_forbidden = (
+            "forbidden_internal_doc" in doc_id
+            or "stale_or_obsolete_doc" in doc_id
+        )
+        descriptive_only = not any(
+            marker in doc_id
+            for marker in [
+                "forbidden_internal_doc",
+                "stale_or_obsolete_doc",
+                "safe_public_doc",
+                "near_duplicate_safe_doc",
+                "distractor_doc",
+            ]
+        )
+        rows.append(
+            {
+                "doc_id": doc_id,
+                "role": str(document.get("role", "")),
+                "is_forbidden": is_forbidden,
+                "expected_forbidden_from_name": expected_forbidden,
+                "consistent": is_forbidden == expected_forbidden,
+                "note": "role name is descriptive, not an external label" if descriptive_only else "",
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _pairwise_deltas(summary: pd.DataFrame) -> pd.DataFrame:
+    comparisons = [
+        "GoodForget-RAG gamma=0",
+        "Positive-only RAG",
+        "Query Rewrite RAG",
+        "Negative Vector Baseline",
+        "Metadata Filter",
+    ]
+    metrics = [
+        "leakage_rate",
+        "utility_recall",
+        "over_filter_rate",
+        "tradeoff_score",
+        "margin_improvement",
+    ]
+    rows = []
+    indexed = summary.set_index(["method", "representation"])
+    for representation in sorted(summary["representation"].unique()):
+        target_key = ("GoodForget-RAG gamma=0.5", representation)
+        if target_key not in indexed.index:
+            continue
+        target = indexed.loc[target_key]
+        for baseline in comparisons:
+            base_key = (baseline, representation)
+            if base_key not in indexed.index:
+                continue
+            base = indexed.loc[base_key]
+            row = {
+                "target_method": "GoodForget-RAG gamma=0.5",
+                "baseline_method": baseline,
+                "representation": representation,
+            }
+            for metric in metrics:
+                row[f"delta_{metric}"] = float(target[metric]) - float(base[metric])
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def _dedupe_cases(cases: pd.DataFrame) -> pd.DataFrame:
+    if cases.empty:
+        return cases
+    if "query_id" not in cases.columns:
+        return cases
+    cases = cases.copy()
+    cases["case_key"] = (
+        cases["case_type"].astype(str)
+        + "|"
+        + cases["query_id"].astype(str)
+        + "|"
+        + cases["representation"].astype(str)
+    )
+    return cases.drop_duplicates("case_key").drop(columns=["case_key"])
+
+
+def _representative_cases(cases: pd.DataFrame, case_type: str) -> pd.DataFrame:
+    subset = cases[cases["case_type"] == case_type].copy()
+    if subset.empty:
+        return subset
+    if case_type == "goodforget_helps":
+        subset = subset.sort_values(
+            ["leakage_reduction_vs_positive", "margin_improvement", "utility_recall"],
+            ascending=[False, False, False],
+        )
+    elif case_type == "goodforget_fails":
+        subset = subset.sort_values(
+            ["leakage_rate", "utility_recall", "margin_improvement"],
+            ascending=[False, True, True],
+        )
+    elif case_type == "gamma_changes_margin_not_selection":
+        subset["abs_margin_improvement"] = subset["margin_improvement"].abs()
+        subset = subset.sort_values(["abs_margin_improvement"], ascending=False)
+    elif case_type == "gamma_hurts_utility":
+        subset = subset.sort_values(["utility_delta_vs_gamma0", "margin_improvement"], ascending=[True, False])
+    cols = [
+        "query_id",
+        "domain",
+        "split",
+        "attack_type",
+        "representation",
+        "retrieved_doc_ids",
+        "selected_forbidden_doc_ids",
+        "missed_expected_doc_ids",
+        "leakage_rate",
+        "utility_recall",
+        "margin_improvement",
+        "leakage_reduction_vs_positive",
+        "utility_delta_vs_gamma0",
+        "comparison_note",
+    ]
+    return subset[[col for col in cols if col in subset.columns]].head(10)
+
+
+def _label_note(label_check: pd.DataFrame) -> str:
+    inconsistent = int((~label_check["consistent"]).sum())
+    if inconsistent:
+        return f"Found {inconsistent} label/name inconsistencies. Inspect results/label_consistency_check.csv before citing results."
+    return "No label/name inconsistencies found for generated hard-negative documents. Role names such as forbidden_internal_doc and stale_or_obsolete_doc are descriptive generator roles, and this check confirms they are counted as forbidden labels in this suite."
+
+
+def _label_report_table(label_check: pd.DataFrame) -> pd.DataFrame:
+    inconsistent = label_check[~label_check["consistent"]]
+    if not inconsistent.empty:
+        return inconsistent.head(20)
+    return (
+        label_check.groupby(["role", "is_forbidden", "expected_forbidden_from_name", "consistent"])
+        .size()
+        .reset_index(name="document_count")
+        .sort_values(["role", "is_forbidden"])
+    )
 
 
 def _scenario_documents(domain: str, scenario_id: str, split: str, topic: str, attribute: str, codeword: str) -> list[dict[str, object]]:

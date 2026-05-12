@@ -50,6 +50,14 @@ The Negative Vector Baseline tests the flawed arithmetic idea of using `-v` as a
 
 Failure cases are mined to `results/failure_cases.csv` and summarized in `docs/failure_cases.md`. Likely causes include lexical overlap failure, codeword mismatch, overbroad forget sets, incomplete forget sets, near-duplicate confusion, mixed-evidence granularity, representation sensitivity, and threshold settings.
 
-## 12. Limitations
+## 12. Hard Negative Pair Suite
+
+The hard negative pair suite narrows the validation question to near-duplicate safe and forbidden documents. It is designed to test whether the negative-aware forget penalty contributes beyond Positive-only RAG, Query Rewrite RAG, and the Negative Vector Baseline.
+
+The current interpretation is conservative. `gamma > 0` forget penalties can substantially reduce forbidden retrieval relative to `gamma=0` and Positive-only retrieval in near-duplicate settings, while improving the safe-forbidden margin. However, GoodForget-RAG does not beat oracle metadata filtering when labels are reliable, and the current suite does not consistently separate forget-intent penalty from the arithmetic negative-vector baseline across all representations.
+
+The suite also writes pairwise deltas to `results/hard_negative_pair_pairwise_deltas.csv` and a label consistency check to `results/label_consistency_check.csv`. Role-like document IDs such as `forbidden_internal_doc` and `stale_or_obsolete_doc` are generator descriptors, not independent external labels; the consistency file verifies whether those descriptors match the generated `is_forbidden` field.
+
+## 13. Limitations
 
 This benchmark is synthetic. It is not model unlearning, not a safety guarantee, not SOTA, and not proof of semantic forgetting. It evaluates retrieval-time behavior under local deterministic representations. Real corpora, human labels, dense embedding validation, adversarial prompt behavior, and full LLM answer leakage remain outside the scope of this appendix.
