@@ -125,7 +125,17 @@ This shows a tradeoff. Lower thresholds can remove more forbidden material but m
 
 Additional limitation-mitigation checks are included in separate scripts. `run_auto_intent.py` compares oracle intents with a simple deterministic heuristic extracted from the query. `run_representation_compare.py` compares raw TF-IDF with a local TF-IDF + truncated SVD LSA proxy. `run_span_experiment.py` converts documents into sentence-like spans to test mixed-evidence behavior at finer granularity. `write_html_brief.py` creates `docs/experiment_brief.html` for human-readable intermediate review.
 
-## 10. Red-Team Limitations
+## 10. Hard Negative Pair Suite
+
+The validation benchmark includes a targeted hard negative pair suite intended to isolate whether the negative-aware penalty contributes beyond Positive-only RAG, Query Rewrite RAG, and the Negative Vector Baseline. Each generated scenario contains a safe public document, a forbidden internal near-duplicate, a near-duplicate safe document that explicitly avoids the restricted attribute, a stale or obsolete document, and a distractor.
+
+This suite is not designed to make GoodForget-RAG always win. It creates cases where positive-only retrieval is likely to retrieve both safe and forbidden near-duplicates, where query rewrite alone can still select forbidden evidence, and where `gamma > 0` can be compared directly against `gamma = 0`.
+
+The current hard-negative run suggests that the negative penalty does contribute in this synthetic setting: `GoodForget-RAG gamma=0.5` reduces leakage relative to `GoodForget-RAG gamma=0`, Positive-only RAG, and Query Rewrite RAG across the tested TF-IDF word, TF-IDF character, hybrid, and LSA representations. It also improves the safe-forbidden margin. The result is still narrow. Utility does not improve, Metadata Filter remains stronger when reliable labels are available, and the Negative Vector Baseline can be close enough in some slices that the suite does not fully distinguish arithmetic negative-vector scoring from explicit forget-intent penalty.
+
+The hard-negative outputs are written to `results/hard_negative_pair_summary.csv`, `results/hard_negative_pair_cases.csv`, and `docs/hard_negative_pair_report.html`. Additional discussion is in `paper/hard_negative_pair_appendix.md`.
+
+## 11. Red-Team Limitations
 
 This project has several limitations by design.
 
@@ -143,10 +153,10 @@ Metadata filtering can outperform GoodForget-RAG when reliable labels are availa
 
 GoodForget-RAG is not a substitute for privacy review, policy enforcement, or model unlearning. It is a retrieval-time control experiment.
 
-## 11. Conclusion
+## 12. Conclusion
 
 GoodForget-RAG is a small, reproducible experiment in negative-aware retrieval for selective non-use of evidence. The contribution is not a claim that forgetting is guaranteed, and it is not a claim of parameter-level deletion. It is a concrete toy framework for asking a practical RAG question: how can a retriever preserve useful adjacent evidence while reducing the chance that forbidden evidence enters the context?
 
 For the expanded validation benchmark suite, see `paper/validation_appendix.md` and `docs/validation_report.html`.
 
-For the targeted hard-negative evaluation, see `paper/hard_negative_pair_appendix.md` and `docs/hard_negative_pair_report.html`. The current hard-negative run suggests that `gamma > 0` can improve the safe-forbidden margin and reduce leakage relative to `gamma = 0`, but it can also reduce utility. Positive-only and Query Rewrite remain competitive on utility, Metadata Filter remains strongest with reliable labels, and the Negative Vector Baseline can be close enough that some slices do not distinguish it from explicit forget-intent suppression.
+For the targeted hard-negative evaluation, see `paper/hard_negative_pair_appendix.md` and `docs/hard_negative_pair_report.html`.
