@@ -1,0 +1,133 @@
+method,representation,metric,mean,ci_low,ci_high,num_queries
+GoodForget-RAG,hybrid,leakage_rate,0.0,0.0,0.0,48
+GoodForget-RAG,hybrid,utility_recall,0.125,0.07265625,0.1875,48
+GoodForget-RAG,hybrid,over_filter_rate,0.875,0.8125,0.9375,48
+GoodForget-RAG,hybrid,leakage_utility_tradeoff_score,-0.3125,-0.390625,-0.21875,48
+GoodForget-RAG,lsa,leakage_rate,0.0,0.0,0.0,48
+GoodForget-RAG,lsa,utility_recall,0.14583333333333334,0.09348958333333333,0.1981770833333334,48
+GoodForget-RAG,lsa,over_filter_rate,0.8541666666666666,0.7916666666666666,0.9270833333333334,48
+GoodForget-RAG,lsa,leakage_utility_tradeoff_score,-0.28125,-0.375,-0.1875,48
+GoodForget-RAG,tfidf_char,leakage_rate,0.0,0.0,0.0,48
+GoodForget-RAG,tfidf_char,utility_recall,0.125,0.0625,0.1875,48
+GoodForget-RAG,tfidf_char,over_filter_rate,0.875,0.82265625,0.9270833333333334,48
+GoodForget-RAG,tfidf_char,leakage_utility_tradeoff_score,-0.3125,-0.390625,-0.21875,48
+GoodForget-RAG,tfidf_word,leakage_rate,0.0,0.0,0.0,48
+GoodForget-RAG,tfidf_word,utility_recall,0.3645833333333333,0.30182291666666666,0.4270833333333333,48
+GoodForget-RAG,tfidf_word,over_filter_rate,0.6354166666666666,0.5729166666666666,0.6981770833333334,48
+GoodForget-RAG,tfidf_word,leakage_utility_tradeoff_score,0.046875,-0.03164062499999999,0.1410156250000001,48
+GoodForget-RAG hard threshold,hybrid,leakage_rate,0.0,0.0,0.0,48
+GoodForget-RAG hard threshold,hybrid,utility_recall,0.052083333333333336,0.02057291666666667,0.09375,48
+GoodForget-RAG hard threshold,hybrid,over_filter_rate,0.9479166666666666,0.91640625,0.9895833333333334,48
+GoodForget-RAG hard threshold,hybrid,leakage_utility_tradeoff_score,-0.421875,-0.46875,-0.3589843749999999,48
+GoodForget-RAG hard threshold,lsa,leakage_rate,0.0,0.0,0.0,48
+GoodForget-RAG hard threshold,lsa,utility_recall,0.010416666666666666,0.0,0.03125,48
+GoodForget-RAG hard threshold,lsa,over_filter_rate,0.9895833333333334,0.9583333333333334,1.0,48
+GoodForget-RAG hard threshold,lsa,leakage_utility_tradeoff_score,-0.484375,-0.5,-0.453125,48
+GoodForget-RAG hard threshold,tfidf_char,leakage_rate,0.0,0.0,0.0,48
+GoodForget-RAG hard threshold,tfidf_char,utility_recall,0.052083333333333336,0.010416666666666666,0.08359375000000005,48
+GoodForget-RAG hard threshold,tfidf_char,over_filter_rate,0.9479166666666666,0.90625,0.9895833333333334,48
+GoodForget-RAG hard threshold,tfidf_char,leakage_utility_tradeoff_score,-0.421875,-0.484375,-0.34375,48
+GoodForget-RAG hard threshold,tfidf_word,leakage_rate,0.0,0.0,0.0,48
+GoodForget-RAG hard threshold,tfidf_word,utility_recall,0.28125,0.20833333333333334,0.3541666666666667,48
+GoodForget-RAG hard threshold,tfidf_word,over_filter_rate,0.71875,0.6354166666666666,0.7815104166666668,48
+GoodForget-RAG hard threshold,tfidf_word,leakage_utility_tradeoff_score,-0.078125,-0.1875,0.01601562500000009,48
+GoodForget-RAG span-level,tfidf_word,leakage_rate,0.0,0.0,0.0,48
+GoodForget-RAG span-level,tfidf_word,utility_recall,0.13020833333333331,0.10590277777777778,0.15277777777777776,48
+GoodForget-RAG span-level,tfidf_word,over_filter_rate,0.8697916666666666,0.8471788194444444,0.890625,48
+GoodForget-RAG span-level,tfidf_word,leakage_utility_tradeoff_score,-0.3046875,-0.34375,-0.2708333333333333,48
+Keyword Blocklist,hybrid,leakage_rate,0.4791666666666667,0.3328125,0.625,48
+Keyword Blocklist,hybrid,utility_recall,0.3020833333333333,0.20833333333333334,0.3856770833333334,48
+Keyword Blocklist,hybrid,over_filter_rate,0.6979166666666666,0.6041666666666666,0.78125,48
+Keyword Blocklist,hybrid,leakage_utility_tradeoff_score,-0.5260416666666666,-0.6979166666666666,-0.3589843749999999,48
+Keyword Blocklist,lsa,leakage_rate,0.3333333333333333,0.1875,0.4588541666666668,48
+Keyword Blocklist,lsa,utility_recall,0.21875,0.15625,0.3125,48
+Keyword Blocklist,lsa,over_filter_rate,0.78125,0.7083333333333334,0.8544270833333334,48
+Keyword Blocklist,lsa,leakage_utility_tradeoff_score,-0.5052083333333334,-0.682421875,-0.3592447916666666,48
+Keyword Blocklist,tfidf_char,leakage_rate,0.5,0.3541666666666667,0.625,48
+Keyword Blocklist,tfidf_char,utility_recall,0.3125,0.22890625,0.4166666666666667,48
+Keyword Blocklist,tfidf_char,over_filter_rate,0.6875,0.59375,0.8020833333333334,48
+Keyword Blocklist,tfidf_char,leakage_utility_tradeoff_score,-0.53125,-0.72421875,-0.3486979166666666,48
+Keyword Blocklist,tfidf_word,leakage_rate,0.2916666666666667,0.16666666666666666,0.4166666666666667,48
+Keyword Blocklist,tfidf_word,utility_recall,0.2604166666666667,0.18723958333333335,0.3229166666666667,48
+Keyword Blocklist,tfidf_word,over_filter_rate,0.7395833333333334,0.6768229166666667,0.8023437500000001,48
+Keyword Blocklist,tfidf_word,leakage_utility_tradeoff_score,-0.4010416666666667,-0.6041666666666666,-0.25403645833333305,48
+Metadata Filter,hybrid,leakage_rate,0.0,0.0,0.0,48
+Metadata Filter,hybrid,utility_recall,0.46875,0.39557291666666666,0.5520833333333334,48
+Metadata Filter,hybrid,over_filter_rate,0.53125,0.44765625000000003,0.6145833333333334,48
+Metadata Filter,hybrid,leakage_utility_tradeoff_score,0.203125,0.109375,0.328125,48
+Metadata Filter,lsa,leakage_rate,0.0,0.0,0.0,48
+Metadata Filter,lsa,utility_recall,0.3541666666666667,0.28125,0.4270833333333333,48
+Metadata Filter,lsa,over_filter_rate,0.6458333333333334,0.5729166666666666,0.7190104166666668,48
+Metadata Filter,lsa,leakage_utility_tradeoff_score,0.03125,-0.06289062499999999,0.171875,48
+Metadata Filter,tfidf_char,leakage_rate,0.0,0.0,0.0,48
+Metadata Filter,tfidf_char,utility_recall,0.5104166666666666,0.40625,0.5940104166666668,48
+Metadata Filter,tfidf_char,over_filter_rate,0.4895833333333333,0.39557291666666666,0.6041666666666666,48
+Metadata Filter,tfidf_char,leakage_utility_tradeoff_score,0.265625,0.109375,0.40625,48
+Metadata Filter,tfidf_word,leakage_rate,0.0,0.0,0.0,48
+Metadata Filter,tfidf_word,utility_recall,0.3541666666666667,0.3015625,0.4270833333333333,48
+Metadata Filter,tfidf_word,over_filter_rate,0.6458333333333334,0.5830729166666667,0.71875,48
+Metadata Filter,tfidf_word,leakage_utility_tradeoff_score,0.03125,-0.046875,0.125,48
+Negative Vector Baseline,hybrid,leakage_rate,0.0,0.0,0.0,48
+Negative Vector Baseline,hybrid,utility_recall,0.23958333333333334,0.16640625,0.3125,48
+Negative Vector Baseline,hybrid,over_filter_rate,0.7604166666666666,0.69765625,0.8333333333333334,48
+Negative Vector Baseline,hybrid,leakage_utility_tradeoff_score,-0.140625,-0.250390625,-0.03085937499999991,48
+Negative Vector Baseline,lsa,leakage_rate,0.0,0.0,0.0,48
+Negative Vector Baseline,lsa,utility_recall,0.09375,0.052083333333333336,0.15625,48
+Negative Vector Baseline,lsa,over_filter_rate,0.90625,0.8434895833333333,0.9481770833333334,48
+Negative Vector Baseline,lsa,leakage_utility_tradeoff_score,-0.359375,-0.4375,-0.2808593749999999,48
+Negative Vector Baseline,tfidf_char,leakage_rate,0.0,0.0,0.0,48
+Negative Vector Baseline,tfidf_char,utility_recall,0.23958333333333334,0.1875,0.3125,48
+Negative Vector Baseline,tfidf_char,over_filter_rate,0.7604166666666666,0.6875,0.8229166666666666,48
+Negative Vector Baseline,tfidf_char,leakage_utility_tradeoff_score,-0.140625,-0.25,-0.015625,48
+Negative Vector Baseline,tfidf_word,leakage_rate,0.0,0.0,0.0,48
+Negative Vector Baseline,tfidf_word,utility_recall,0.3645833333333333,0.30182291666666666,0.4270833333333333,48
+Negative Vector Baseline,tfidf_word,over_filter_rate,0.6354166666666666,0.5833333333333334,0.7085937500000001,48
+Negative Vector Baseline,tfidf_word,leakage_utility_tradeoff_score,0.046875,-0.046875,0.140625,48
+Positive-only RAG,hybrid,leakage_rate,0.0,0.0,0.0,48
+Positive-only RAG,hybrid,utility_recall,0.375,0.3125,0.4375,48
+Positive-only RAG,hybrid,over_filter_rate,0.625,0.5625,0.6877604166666668,48
+Positive-only RAG,hybrid,leakage_utility_tradeoff_score,0.0625,-0.01601562499999999,0.15625,48
+Positive-only RAG,lsa,leakage_rate,0.0,0.0,0.0,48
+Positive-only RAG,lsa,utility_recall,0.375,0.3125,0.42734375,48
+Positive-only RAG,lsa,over_filter_rate,0.625,0.5833333333333334,0.6875,48
+Positive-only RAG,lsa,leakage_utility_tradeoff_score,0.0625,-0.01601562499999999,0.15625,48
+Positive-only RAG,tfidf_char,leakage_rate,0.0,0.0,0.0,48
+Positive-only RAG,tfidf_char,utility_recall,0.375,0.3125,0.42734375,48
+Positive-only RAG,tfidf_char,over_filter_rate,0.625,0.5729166666666666,0.6875,48
+Positive-only RAG,tfidf_char,leakage_utility_tradeoff_score,0.0625,-0.0003906249999999917,0.15625,48
+Positive-only RAG,tfidf_word,leakage_rate,0.0,0.0,0.0,48
+Positive-only RAG,tfidf_word,utility_recall,0.375,0.3125,0.4270833333333333,48
+Positive-only RAG,tfidf_word,over_filter_rate,0.625,0.5625,0.6666666666666666,48
+Positive-only RAG,tfidf_word,leakage_utility_tradeoff_score,0.0625,-0.01601562499999999,0.1410156250000001,48
+Query Rewrite RAG,hybrid,leakage_rate,0.0,0.0,0.0,48
+Query Rewrite RAG,hybrid,utility_recall,0.375,0.3125,0.4375,48
+Query Rewrite RAG,hybrid,over_filter_rate,0.625,0.5625,0.6875,48
+Query Rewrite RAG,hybrid,leakage_utility_tradeoff_score,0.0625,-0.046875,0.15625,48
+Query Rewrite RAG,lsa,leakage_rate,0.0,0.0,0.0,48
+Query Rewrite RAG,lsa,utility_recall,0.375,0.3125,0.4270833333333333,48
+Query Rewrite RAG,lsa,over_filter_rate,0.625,0.5625,0.6773437500000001,48
+Query Rewrite RAG,lsa,leakage_utility_tradeoff_score,0.0625,-0.015625,0.1410156250000001,48
+Query Rewrite RAG,tfidf_char,leakage_rate,0.0,0.0,0.0,48
+Query Rewrite RAG,tfidf_char,utility_recall,0.375,0.3229166666666667,0.4375,48
+Query Rewrite RAG,tfidf_char,over_filter_rate,0.625,0.5729166666666666,0.6875,48
+Query Rewrite RAG,tfidf_char,leakage_utility_tradeoff_score,0.0625,-0.03125,0.140625,48
+Query Rewrite RAG,tfidf_word,leakage_rate,0.0,0.0,0.0,48
+Query Rewrite RAG,tfidf_word,utility_recall,0.375,0.31223958333333335,0.4375,48
+Query Rewrite RAG,tfidf_word,over_filter_rate,0.625,0.57265625,0.6875,48
+Query Rewrite RAG,tfidf_word,leakage_utility_tradeoff_score,0.0625,-0.03125,0.15625,48
+Vanilla RAG,hybrid,leakage_rate,0.5625,0.4166666666666667,0.7083333333333334,48
+Vanilla RAG,hybrid,utility_recall,0.22916666666666666,0.16640625,0.28125,48
+Vanilla RAG,hybrid,over_filter_rate,0.7708333333333334,0.6979166666666666,0.8333333333333334,48
+Vanilla RAG,hybrid,leakage_utility_tradeoff_score,-0.71875,-0.8751302083333333,-0.5466145833333332,48
+Vanilla RAG,lsa,leakage_rate,0.5,0.375,0.6458333333333334,48
+Vanilla RAG,lsa,utility_recall,0.09375,0.03125,0.15625,48
+Vanilla RAG,lsa,over_filter_rate,0.90625,0.84375,0.9583333333333334,48
+Vanilla RAG,lsa,leakage_utility_tradeoff_score,-0.859375,-1.0261718750000002,-0.692578125,48
+Vanilla RAG,tfidf_char,leakage_rate,0.5625,0.3958333333333333,0.6880208333333334,48
+Vanilla RAG,tfidf_char,utility_recall,0.22916666666666666,0.16666666666666666,0.2919270833333334,48
+Vanilla RAG,tfidf_char,over_filter_rate,0.7708333333333334,0.69765625,0.8333333333333334,48
+Vanilla RAG,tfidf_char,leakage_utility_tradeoff_score,-0.71875,-0.869921875,-0.5618489583333331,48
+Vanilla RAG,tfidf_word,leakage_rate,0.5208333333333334,0.3953125,0.6666666666666666,48
+Vanilla RAG,tfidf_word,utility_recall,0.20833333333333334,0.13515625,0.27109375,48
+Vanilla RAG,tfidf_word,over_filter_rate,0.7916666666666666,0.7184895833333333,0.8544270833333334,48
+Vanilla RAG,tfidf_word,leakage_utility_tradeoff_score,-0.7083333333333334,-0.901171875,-0.5255208333333332,48

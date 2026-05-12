@@ -146,3 +146,5 @@ GoodForget-RAG is not a substitute for privacy review, policy enforcement, or mo
 ## 11. Conclusion
 
 GoodForget-RAG is a small, reproducible experiment in negative-aware retrieval for selective non-use of evidence. The contribution is not a claim that forgetting is guaranteed, and it is not a claim of parameter-level deletion. It is a concrete toy framework for asking a practical RAG question: how can a retriever preserve useful adjacent evidence while reducing the chance that forbidden evidence enters the context?
+
+For the expanded validation benchmark suite, see `paper/validation_appendix.md` and `docs/validation_report.html`.

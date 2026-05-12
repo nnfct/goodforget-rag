@@ -107,6 +107,27 @@ python experiments/write_html_brief.py
 
 The scripts use only local files and do not download models or call external APIs at runtime.
 
+## Validation Benchmark Suite
+
+The validation suite expands the six-query toy demo into a larger synthetic benchmark for retrieval-time control tradeoffs. It is exploratory and synthetic; it should be used to inspect where methods help, tie, or fail.
+
+Benchmark commands:
+
+```bash
+python experiments/generate_benchmark.py --config configs/benchmark_default.yaml
+python experiments/run_benchmark_suite.py --config configs/benchmark_default.yaml
+python experiments/run_attack_suite.py --config configs/benchmark_default.yaml
+python experiments/run_ablation_suite.py --config configs/benchmark_fast.yaml
+python experiments/run_label_noise_suite.py --config configs/benchmark_default.yaml
+python experiments/run_seed_stability.py --config configs/benchmark_fast.yaml
+python experiments/run_negative_vector_baseline.py --config configs/benchmark_default.yaml
+python experiments/make_validation_report.py
+```
+
+For laptop smoke tests, replace `benchmark_default.yaml` with `benchmark_fast.yaml`.
+
+The report is written to `docs/validation_report.html`. Open it in a browser to inspect main results, attack-type breakdowns, label-noise behavior, bootstrap intervals, plots, and mined failure cases.
+
 ## Expected Outputs
 
 The main experiment writes:
@@ -183,6 +204,16 @@ The repository now includes additional checks that make some limitations measura
 - A span-level experiment is included, but span labels are derived heuristically.
 - Metadata filtering can outperform GoodForget-RAG when reliable labels are available.
 - GoodForget-RAG is not a substitute for privacy review, policy enforcement, or model unlearning.
+
+## What Not To Claim
+
+- Do not claim model unlearning.
+- Do not claim guaranteed forgetting.
+- Do not claim SOTA.
+- Do not claim semantic forgetting proof.
+- Do not hide failures or cases where simpler baselines win.
+
+Current conservative validation summary: on the fast synthetic benchmark, GoodForget-RAG reduces leakage relative to Vanilla RAG, but it often trades away utility. Metadata Filter is better when labels are reliable. Positive-only and Query Rewrite baselines can tie or beat GoodForget-RAG on utility because the benchmark provides positive intents.
 
 ## LinkedIn-Friendly Positioning
 

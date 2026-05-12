@@ -1,0 +1,14 @@
+mode: large
+num_domains: 12
+scenarios_per_domain: 8
+documents_per_scenario: 6
+query_variants_per_scenario: 5
+seeds: [7, 11, 17, 23, 31, 43, 59, 71, 89, 101]
+top_k: 5
+candidate_k: 40
+representations: [tfidf_word, tfidf_char, lsa, hybrid]
+alpha: 0.4
+beta: 0.8
+gamma: 0.5
+forget_threshold: 0.25
+bootstrap_samples: 1000

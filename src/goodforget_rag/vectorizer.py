@@ -25,6 +25,7 @@ class TfidfEncoder:
     """
 
     ngram_range: tuple[int, int] = (1, 2)
+    analyzer: str = "word"
     min_df: int = 1
     max_df: float = 1.0
     vectorizer: TfidfVectorizer = field(init=False)
@@ -32,6 +33,7 @@ class TfidfEncoder:
     def __post_init__(self) -> None:
         self.vectorizer = TfidfVectorizer(
             lowercase=True,
+            analyzer=self.analyzer,
             ngram_range=self.ngram_range,
             min_df=self.min_df,
             max_df=self.max_df,
@@ -65,6 +67,7 @@ class LsaEncoder:
     """
 
     ngram_range: tuple[int, int] = (1, 2)
+    analyzer: str = "word"
     max_components: int = 8
     min_df: int = 1
     max_df: float = 1.0
@@ -75,6 +78,7 @@ class LsaEncoder:
     def __post_init__(self) -> None:
         self.vectorizer = TfidfVectorizer(
             lowercase=True,
+            analyzer=self.analyzer,
             ngram_range=self.ngram_range,
             min_df=self.min_df,
             max_df=self.max_df,
@@ -102,6 +106,30 @@ class LsaEncoder:
         if self.svd is None:
             return tfidf
         return self.normalizer.transform(self.svd.transform(tfidf))
+
+
+@dataclass
+class HybridEncoder:
+    """Hybrid local lexical encoder combining word and character TF-IDF."""
+
+    word_encoder: TfidfEncoder = field(default_factory=TfidfEncoder)
+    char_encoder: TfidfEncoder = field(
+        default_factory=lambda: TfidfEncoder(analyzer="char_wb", ngram_range=(3, 5))
+    )
+
+    def fit(self, texts: Iterable[str]) -> "HybridEncoder":
+        training_texts = list(texts)
+        self.word_encoder.fit(training_texts)
+        self.char_encoder.fit(training_texts)
+        return self
+
+    def encode_documents(self, documents: Sequence[dict[str, object]]) -> Matrix:
+        return self.encode_texts([document_to_text(doc) for doc in documents])
+
+    def encode_texts(self, texts: Sequence[str]) -> Matrix:
+        word = self.word_encoder.encode_texts(texts)
+        char = self.char_encoder.encode_texts(texts)
+        return sparse.hstack([word, char], format="csr")
 
 
 def document_to_text(document: dict[str, object]) -> str:
