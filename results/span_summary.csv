@@ -1,0 +1,4 @@
+method,leakage_rate,utility_recall,safe_context_recall,over_filter_rate,forbidden_removal_precision,empty_context_rate,answer_leakage_rate,num_queries
+Span Vanilla RAG,1.0,0.8055555555555555,0.8055555555555555,0.19444444444444445,0.0,0.0,1.0,6
+Span Metadata Filter,0.0,0.9166666666666666,0.9166666666666666,0.08333333333333333,1.0,0.0,0.0,6
+Span GoodForget-RAG,0.3333333333333333,1.0,1.0,0.0,0.0,0.0,0.3333333333333333,6

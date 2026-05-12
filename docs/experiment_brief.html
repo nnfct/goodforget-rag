@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GoodForget-RAG Experiment Brief</title>
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #5f6c7b;
+      --line: #d7dde5;
+      --accent: #155e75;
+      --risk: #9f1239;
+      --ok: #047857;
+      --warn: #b45309;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 30px 18px 56px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 30px 0 12px;
+      font-size: 21px;
+      letter-spacing: 0;
+    }
+    p {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 22px 0;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+    .card strong {
+      display: block;
+      font-size: 24px;
+      margin-top: 6px;
+    }
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      color: #fff;
+      background: var(--accent);
+      margin-right: 6px;
+    }
+    .tag.warn { background: var(--warn); }
+    .tag.ok { background: var(--ok); }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 760px;
+    }
+    .data-table th, .data-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    .data-table th {
+      background: #eef2f7;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .note {
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      background: #eef7fa;
+      color: var(--ink);
+      border-radius: 0 8px 8px 0;
+    }
+    .risk {
+      border-left-color: var(--risk);
+      background: #fff1f2;
+    }
+    ul {
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    @media (max-width: 900px) {
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .summary-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>GoodForget-RAG Experiment Brief</h1>
+    <p>Generated 2026-05-12 07:26 UTC. This brief summarizes intermediate mitigation work for red-team limitations. It is a toy retrieval-control evaluation, not model unlearning or a safety guarantee.</p>
+
+    <div>
+      <span class="tag ok">local deterministic</span>
+      <span class="tag">TF-IDF</span>
+      <span class="tag">Local LSA sensitivity</span>
+      <span class="tag">span-level check</span>
+      <span class="tag warn">synthetic data</span>
+    </div>
+
+    <section class="summary-grid">
+      <div class="card">Default GoodForget leakage<strong>0.333</strong></div>
+      <div class="card">Default GoodForget utility<strong>0.833</strong></div>
+      <div class="card">Best sensitivity leakage<strong>0.000</strong></div>
+      <div class="card">Best sensitivity utility<strong>0.917</strong></div>
+    </section>
+
+    <h2>Goal Status</h2>
+    <div class="note">
+      Added three mitigation checks: heuristic intent extraction to reduce oracle dependence, span-level retrieval labels to probe document-level limitations, and Local LSA representation sensitivity to avoid relying on one raw TF-IDF result. These do not eliminate the limitations, but they make them measurable.
+    </div>
+
+    <h2>Main Retrieval Results</h2>
+    <div class="table-wrap"><table border="1" class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>method</th>
+      <th>leakage_rate</th>
+      <th>utility_recall</th>
+      <th>safe_context_recall</th>
+      <th>over_filter_rate</th>
+      <th>forbidden_removal_precision</th>
+      <th>empty_context_rate</th>
+      <th>answer_leakage_rate</th>
+      <th>num_queries</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Vanilla RAG</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.833</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Positive-only RAG</td>
+      <td>0.333</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.333</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Query Rewrite RAG</td>
+      <td>0.333</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.333</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Keyword Blocklist</td>
+      <td>0.333</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.333</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Metadata Filter</td>
+      <td>0.000</td>
+      <td>0.917</td>
+      <td>0.917</td>
+      <td>0.083</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>GoodForget-RAG</td>
+      <td>0.333</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.333</td>
+      <td>6</td>
+    </tr>
+  </tbody>
+</table></div>
+
+    <h2>Split-Level Results</h2>
+    <div class="table-wrap"><table border="1" class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>split</th>
+      <th>method</th>
+      <th>leakage_rate</th>
+      <th>utility_recall</th>
+      <th>safe_context_recall</th>
+      <th>over_filter_rate</th>
+      <th>forbidden_removal_precision</th>
+      <th>empty_context_rate</th>
+      <th>answer_leakage_rate</th>
+      <th>num_queries</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>literal</td>
+      <td>Vanilla RAG</td>
+      <td>1.000</td>
+      <td>1.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>1.000</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>literal</td>
+      <td>Positive-only RAG</td>
+      <td>0.500</td>
+      <td>1.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.500</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>literal</td>
+      <td>Query Rewrite RAG</td>
+      <td>0.500</td>
+      <td>1.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.500</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>literal</td>
+      <td>Keyword Blocklist</td>
+      <td>0.000</td>
+      <td>1.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>literal</td>
+      <td>Metadata Filter</td>
+      <td>0.000</td>
+      <td>1.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>literal</td>
+      <td>GoodForget-RAG</td>
+      <td>0.500</td>
+      <td>1.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.500</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>mixed_evidence</td>
+      <td>Vanilla RAG</td>
+      <td>0.500</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.500</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>mixed_evidence</td>
+      <td>Positive-only RAG</td>
+      <td>0.500</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.500</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>mixed_evidence</td>
+      <td>Query Rewrite RAG</td>
+      <td>0.500</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.500</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>mixed_evidence</td>
+      <td>Keyword Blocklist</td>
+      <td>0.500</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.500</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>mixed_evidence</td>
+      <td>Metadata Filter</td>
+      <td>0.000</td>
+      <td>1.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>mixed_evidence</td>
+      <td>GoodForget-RAG</td>
+      <td>0.500</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.500</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>paraphrase</td>
+      <td>Vanilla RAG</td>
+      <td>1.000</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>1.000</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>paraphrase</td>
+      <td>Positive-only RAG</td>
+      <td>0.000</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>paraphrase</td>
+      <td>Query Rewrite RAG</td>
+      <td>0.000</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>paraphrase</td>
+      <td>Keyword Blocklist</td>
+      <td>0.500</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.500</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>paraphrase</td>
+      <td>Metadata Filter</td>
+      <td>0.000</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>paraphrase</td>
+      <td>GoodForget-RAG</td>
+      <td>0.000</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table></div>
+
+    <h2>Intent Assumption Check</h2>
+    <p>Compares oracle positive/forget intents with a simple deterministic heuristic extracted from the query.</p>
+    <div class="table-wrap"><table border="1" class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>method</th>
+      <th>leakage_rate</th>
+      <th>utility_recall</th>
+      <th>safe_context_recall</th>
+      <th>over_filter_rate</th>
+      <th>forbidden_removal_precision</th>
+      <th>empty_context_rate</th>
+      <th>answer_leakage_rate</th>
+      <th>num_queries</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Vanilla RAG</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.833</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Oracle GoodForget-RAG</td>
+      <td>0.333</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.333</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Heuristic GoodForget-RAG</td>
+      <td>0.333</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.333</td>
+      <td>6</td>
+    </tr>
+  </tbody>
+</table></div>
+
+    <h2>Representation Sensitivity</h2>
+    <p>Compares raw TF-IDF with a local TF-IDF + truncated SVD LSA proxy. This is still local and deterministic; it is not a downloaded dense embedding model.</p>
+    <div class="table-wrap"><table border="1" class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>representation</th>
+      <th>method</th>
+      <th>leakage_rate</th>
+      <th>utility_recall</th>
+      <th>safe_context_recall</th>
+      <th>over_filter_rate</th>
+      <th>answer_leakage_rate</th>
+      <th>num_queries</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Local LSA</td>
+      <td>GoodForget-RAG</td>
+      <td>0.500</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.500</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Local LSA</td>
+      <td>Vanilla RAG</td>
+      <td>1.000</td>
+      <td>0.417</td>
+      <td>0.417</td>
+      <td>0.583</td>
+      <td>1.000</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>TF-IDF</td>
+      <td>GoodForget-RAG</td>
+      <td>0.333</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.333</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>TF-IDF</td>
+      <td>Vanilla RAG</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.833</td>
+      <td>0.167</td>
+      <td>0.833</td>
+      <td>6</td>
+    </tr>
+  </tbody>
+</table></div>
+
+    <h2>Span-Level Limitation Check</h2>
+    <p>Splits documents into sentence-like spans and maps mixed-evidence labels to spans. This tests whether span-level retrieval can preserve safe text inside otherwise forbidden parent documents.</p>
+    <div class="table-wrap"><table border="1" class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>method</th>
+      <th>leakage_rate</th>
+      <th>utility_recall</th>
+      <th>safe_context_recall</th>
+      <th>over_filter_rate</th>
+      <th>forbidden_removal_precision</th>
+      <th>empty_context_rate</th>
+      <th>answer_leakage_rate</th>
+      <th>num_queries</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Span Vanilla RAG</td>
+      <td>1.000</td>
+      <td>0.806</td>
+      <td>0.806</td>
+      <td>0.194</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>1.000</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Span Metadata Filter</td>
+      <td>0.000</td>
+      <td>0.917</td>
+      <td>0.917</td>
+      <td>0.083</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Span GoodForget-RAG</td>
+      <td>0.333</td>
+      <td>1.000</td>
+      <td>1.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.333</td>
+      <td>6</td>
+    </tr>
+  </tbody>
+</table></div>
+
+    <h2>Best Sensitivity Settings</h2>
+    <div class="table-wrap"><table border="1" class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>gamma</th>
+      <th>forget_threshold</th>
+      <th>leakage_rate</th>
+      <th>utility_recall</th>
+      <th>safe_context_recall</th>
+      <th>over_filter_rate</th>
+      <th>empty_context_rate</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0.500</td>
+      <td>0.300</td>
+      <td>0.000</td>
+      <td>0.917</td>
+      <td>0.917</td>
+      <td>0.083</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>1.000</td>
+      <td>0.300</td>
+      <td>0.000</td>
+      <td>0.917</td>
+      <td>0.917</td>
+      <td>0.083</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>1.500</td>
+      <td>0.300</td>
+      <td>0.000</td>
+      <td>0.917</td>
+      <td>0.917</td>
+      <td>0.083</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>0.500</td>
+      <td>0.200</td>
+      <td>0.000</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>0.500</td>
+      <td>0.250</td>
+      <td>0.000</td>
+      <td>0.750</td>
+      <td>0.750</td>
+      <td>0.250</td>
+      <td>0.000</td>
+    </tr>
+  </tbody>
+</table></div>
+
+    <h2>Residual Limitations</h2>
+    <div class="note risk">
+      The project remains synthetic and small. Heuristic intents are weak, span labels are derived heuristically, and Local LSA is only a local representation sensitivity check. Full LLM answer leakage, real corpora, human labels, policy enforcement, and true model unlearning remain outside this implementation.
+    </div>
+  </main>
+</body>
+</html>

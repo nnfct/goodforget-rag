@@ -123,19 +123,21 @@ The sensitivity script varies:
 
 This shows a tradeoff. Lower thresholds can remove more forbidden material but may reduce safe context recall. Higher thresholds preserve more context but may depend more heavily on ranking rather than explicit removal. The sensitivity results are written to `results/sensitivity.csv`.
 
+Additional limitation-mitigation checks are included in separate scripts. `run_auto_intent.py` compares oracle intents with a simple deterministic heuristic extracted from the query. `run_representation_compare.py` compares raw TF-IDF with a local TF-IDF + truncated SVD LSA proxy. `run_span_experiment.py` converts documents into sentence-like spans to test mixed-evidence behavior at finer granularity. `write_html_brief.py` creates `docs/experiment_brief.html` for human-readable intermediate review.
+
 ## 10. Red-Team Limitations
 
 This project has several limitations by design.
 
-Oracle positive and forget intents are assumed. A real system would need to create or validate those intents, and errors there could dominate the retrieval behavior.
+Oracle positive and forget intents are assumed in the main experiment. The heuristic intent experiment partially probes this assumption, but it is not a production-quality query rewriter and should not be treated as robust intent extraction.
 
 The dataset is synthetic and may favor the proposed method. It is useful for inspection and reproducibility, not broad empirical claims.
 
 The current experiment evaluates retrieval-context leakage, not full LLM answer leakage. The answer proxy concatenates selected evidence titles and snippets and checks for forbidden markers. It is not a generated-answer evaluation.
 
-TF-IDF is a lexical proxy, not dense semantic embedding. Dense embedding performance is not validated.
+TF-IDF is a lexical proxy, not dense semantic embedding. The Local LSA comparison adds a deterministic representation sensitivity check, but dense embedding performance is still not validated.
 
-The method operates at document level, not span level. Mixed-evidence documents can force a tradeoff between utility and suppression.
+The method operates at document level in the main experiment. The span-level experiment reduces this limitation for the toy corpus, but its span labels are derived heuristically and do not replace human-reviewed span annotation.
 
 Metadata filtering can outperform GoodForget-RAG when reliable labels are available. In practice, labels may be unavailable, stale, or too coarse, but this repository does not solve that data-governance problem.
 

@@ -61,21 +61,31 @@ goodforget-rag/
 │   ├── vectorizer.py
 │   ├── retrieval.py
 │   ├── eval.py
-│   └── data.py
+│   ├── data.py
+│   ├── intents.py
+│   └── spans.py
 ├── experiments/
 │   ├── run_experiment.py
 │   ├── run_sensitivity.py
+│   ├── run_auto_intent.py
+│   ├── run_representation_compare.py
+│   ├── run_span_experiment.py
+│   ├── write_html_brief.py
 │   ├── toy_corpus.jsonl
 │   └── toy_queries.jsonl
 ├── results/
 │   ├── summary.csv
 │   ├── split_summary.csv
 │   ├── toy_results.csv
-│   └── sensitivity.csv
+│   ├── sensitivity.csv
+│   ├── auto_intent_summary.csv
+│   ├── representation_summary.csv
+│   └── span_summary.csv
 ├── paper/
 │   └── technical_note.md
 ├── docs/
 │   ├── architecture.html
+│   ├── experiment_brief.html
 │   ├── linkedin_post_kr.md
 │   ├── linkedin_post_en.md
 │   └── red_team_notes.md
@@ -89,6 +99,10 @@ goodforget-rag/
 python -m pip install -e .
 python experiments/run_experiment.py
 python experiments/run_sensitivity.py
+python experiments/run_auto_intent.py
+python experiments/run_representation_compare.py
+python experiments/run_span_experiment.py
+python experiments/write_html_brief.py
 ```
 
 The scripts use only local files and do not download models or call external APIs at runtime.
@@ -104,6 +118,16 @@ The main experiment writes:
 The sensitivity run writes:
 
 - `results/sensitivity.csv`
+
+The limitation-mitigation checks write:
+
+- `results/auto_intent_summary.csv`
+- `results/auto_intent_results.csv`
+- `results/representation_summary.csv`
+- `results/representation_results.csv`
+- `results/span_summary.csv`
+- `results/span_results.csv`
+- `docs/experiment_brief.html`
 
 Example summary from the current toy run:
 
@@ -137,15 +161,26 @@ The toy dataset has three splits:
 
 The results are intentionally not perfect. Vanilla RAG leaks frequently. Positive-only and query rewrite baselines reduce some leakage but still select forbidden evidence in close-topic cases. Keyword blocklists handle literal cases but fail on paraphrases. Metadata filtering is strong when reliable labels exist, but that assumption is often unrealistic. GoodForget-RAG reduces leakage relative to vanilla retrieval in this toy setup, but it still leaks in some literal and mixed-evidence cases with the default weights.
 
+## Limitation-Mitigation Checks
+
+The repository now includes additional checks that make some limitations measurable rather than merely stated:
+
+- **Heuristic intent check**: compares oracle positive/forget intents against simple query-derived intents. This reduces reliance on an untested oracle assumption, but the heuristic is intentionally weak.
+- **Representation sensitivity**: compares raw TF-IDF with a local TF-IDF + truncated SVD LSA representation. This is not a downloaded dense embedding model, but it checks whether the toy result depends on one lexical feature space.
+- **Span-level check**: splits documents into sentence-like spans to test whether mixed-evidence cases can preserve safe spans while suppressing forbidden spans.
+- **HTML brief**: `docs/experiment_brief.html` summarizes intermediate results for human review.
+
 ## Red-Team Limitations
 
 - Oracle positive and forget intents are assumed.
+- A heuristic intent comparison is included, but it is not a production query rewriter.
 - The dataset is synthetic and may favor the proposed method.
 - TF-IDF is a lexical proxy, not a dense semantic embedding.
-- Dense embedding performance is not validated here.
+- Dense embedding performance is not validated here; Local LSA is only a local sensitivity check.
 - The experiment evaluates retrieval-context leakage, not full LLM answer leakage.
 - `answer_leakage_rate` is only a deterministic proxy.
 - The method operates at document level, not span level.
+- A span-level experiment is included, but span labels are derived heuristically.
 - Metadata filtering can outperform GoodForget-RAG when reliable labels are available.
 - GoodForget-RAG is not a substitute for privacy review, policy enforcement, or model unlearning.
 
@@ -155,8 +190,8 @@ GoodForget-RAG frames forgetting in RAG as **selective non-use of evidence**. Th
 
 ## Suggested Next Steps
 
-- Replace TF-IDF with local dense embeddings and rerun the same evaluation.
-- Add span-level filtering for mixed-evidence documents.
+- Replace TF-IDF/Local LSA with vetted local dense embeddings and rerun the same evaluation.
+- Replace heuristic span labels with human-reviewed span labels.
 - Add adversarial paraphrase generation and human-reviewed labels.
 - Evaluate with real corpora where policy labels are incomplete or noisy.
 - Add tests for metric definitions and ranking stability.

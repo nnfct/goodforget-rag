@@ -253,7 +253,7 @@ def _max_forget_scores(
 
     forget_vectors = encoder.encode_texts(list(forget_set))
     scores_by_forget_text = [
-        cosine_scores(forget_vectors[row_idx], doc_vectors)
+        cosine_scores(forget_vectors[row_idx : row_idx + 1], doc_vectors)
         for row_idx in range(forget_vectors.shape[0])
     ]
     return np.max(np.vstack(scores_by_forget_text), axis=0)

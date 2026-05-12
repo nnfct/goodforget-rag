@@ -9,9 +9,11 @@ import numpy as np
 from scipy import sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.decomposition import TruncatedSVD
+from sklearn.preprocessing import Normalizer
 
 
-SparseMatrix = sparse.spmatrix
+Matrix = sparse.spmatrix | np.ndarray
 
 
 @dataclass
@@ -42,15 +44,64 @@ class TfidfEncoder:
         self.vectorizer.fit(list(texts))
         return self
 
-    def encode_documents(self, documents: Sequence[dict[str, object]]) -> SparseMatrix:
+    def encode_documents(self, documents: Sequence[dict[str, object]]) -> Matrix:
         """Encode document dictionaries using their title, body, and tags."""
 
         return self.encode_texts([document_to_text(doc) for doc in documents])
 
-    def encode_texts(self, texts: Sequence[str]) -> SparseMatrix:
+    def encode_texts(self, texts: Sequence[str]) -> Matrix:
         """Encode arbitrary text strings in the fitted TF-IDF space."""
 
         return self.vectorizer.transform(list(texts))
+
+
+@dataclass
+class LsaEncoder:
+    """Local TF-IDF + truncated SVD encoder for representation sensitivity.
+
+    This is not a downloaded dense embedding model. It is a deterministic local
+    latent semantic analysis proxy used to test whether conclusions depend on
+    raw lexical TF-IDF features.
+    """
+
+    ngram_range: tuple[int, int] = (1, 2)
+    max_components: int = 8
+    min_df: int = 1
+    max_df: float = 1.0
+    vectorizer: TfidfVectorizer = field(init=False)
+    svd: TruncatedSVD | None = field(default=None, init=False)
+    normalizer: Normalizer = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.vectorizer = TfidfVectorizer(
+            lowercase=True,
+            ngram_range=self.ngram_range,
+            min_df=self.min_df,
+            max_df=self.max_df,
+            norm="l2",
+        )
+        self.normalizer = Normalizer(copy=False)
+
+    def fit(self, texts: Iterable[str]) -> "LsaEncoder":
+        training_texts = list(texts)
+        tfidf = self.vectorizer.fit_transform(training_texts)
+        max_valid_components = max(1, min(tfidf.shape[0], tfidf.shape[1]) - 1)
+        n_components = min(self.max_components, max_valid_components)
+        if n_components <= 1:
+            self.svd = None
+        else:
+            self.svd = TruncatedSVD(n_components=n_components, random_state=7)
+            self.normalizer.fit(self.svd.fit_transform(tfidf))
+        return self
+
+    def encode_documents(self, documents: Sequence[dict[str, object]]) -> Matrix:
+        return self.encode_texts([document_to_text(doc) for doc in documents])
+
+    def encode_texts(self, texts: Sequence[str]) -> Matrix:
+        tfidf = self.vectorizer.transform(list(texts))
+        if self.svd is None:
+            return tfidf
+        return self.normalizer.transform(self.svd.transform(tfidf))
 
 
 def document_to_text(document: dict[str, object]) -> str:
@@ -64,7 +115,7 @@ def document_to_text(document: dict[str, object]) -> str:
     return f"{title}\n{text}\n{tag_text}\n{notes}".strip()
 
 
-def cosine_scores(query_vector: SparseMatrix, document_vectors: SparseMatrix) -> np.ndarray:
+def cosine_scores(query_vector: Matrix, document_vectors: Matrix) -> np.ndarray:
     """Return cosine similarities between one query vector and many documents."""
 
     scores = cosine_similarity(query_vector, document_vectors).ravel()

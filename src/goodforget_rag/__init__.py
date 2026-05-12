@@ -8,10 +8,11 @@ from goodforget_rag.retrieval import (
     positive_only_retrieve,
     vanilla_retrieve,
 )
-from goodforget_rag.vectorizer import TfidfEncoder
+from goodforget_rag.vectorizer import LsaEncoder, TfidfEncoder
 
 __all__ = [
     "TfidfEncoder",
+    "LsaEncoder",
     "vanilla_retrieve",
     "positive_only_retrieve",
     "query_rewrite_retrieve",

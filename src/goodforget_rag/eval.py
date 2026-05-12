@@ -203,6 +203,11 @@ def _summarize(rows: Sequence[dict[str, object]], group_cols: list[str]) -> pd.D
         "Keyword Blocklist": 3,
         "Metadata Filter": 4,
         "GoodForget-RAG": 5,
+        "Oracle GoodForget-RAG": 6,
+        "Heuristic GoodForget-RAG": 7,
+        "Span Vanilla RAG": 8,
+        "Span Metadata Filter": 9,
+        "Span GoodForget-RAG": 10,
     }
     sort_cols = [col for col in ["split", "method"] if col in frame.columns]
     if "method" in sort_cols:

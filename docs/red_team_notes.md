@@ -14,6 +14,10 @@ The project also demonstrates a more careful evaluation setup than a single vani
 - retrieval-context leakage metrics;
 - a deterministic answer leakage proxy;
 - sensitivity analysis over penalty and threshold values.
+- oracle-versus-heuristic intent comparison;
+- TF-IDF versus local LSA representation sensitivity;
+- a span-level mixed-evidence check;
+- a standalone HTML experiment brief.
 
 ## What This Project Does Not Demonstrate
 
@@ -41,14 +45,16 @@ The metrics include over-filtering and safe context recall, not only leakage. Th
 
 The technical note explicitly states that the method is retrieval-time control, not model unlearning, and that TF-IDF is a lexical proxy.
 
+The latest version also turns several limitations into explicit checks. `run_auto_intent.py` probes the oracle-intent assumption with a deterministic heuristic. `run_representation_compare.py` checks whether the result changes under local LSA. `run_span_experiment.py` tests whether sentence-level spans help mixed-evidence cases. `docs/experiment_brief.html` makes these intermediate results easier to inspect.
+
 ## Remaining Weaknesses
 
 The dataset is still synthetic and small. Real corpora would contain noisier labels, near duplicates, stale policies, partial restrictions, and contradictory evidence.
 
-The forget set is manually specified. A real deployment would need a process for generating, reviewing, and updating forget intents.
+The forget set is manually specified in the main experiment. The heuristic-intent comparison is a useful stress check, but a real deployment would need a process for generating, reviewing, and updating forget intents.
 
 The answer leakage metric is deterministic and evidence-based. It does not capture hallucinated leakage, paraphrased leakage, prompt injection, or model priors.
 
-The method works at document level. A span-level retriever or redactor would be more appropriate for mixed evidence.
+The main method works at document level. The span-level experiment reduces this limitation in the toy setting, but the span labels are heuristic and still synthetic.
 
 Metadata filtering remains a strong oracle baseline. GoodForget-RAG is most relevant when labels are unavailable, incomplete, or too coarse, but this repository does not solve label governance.
