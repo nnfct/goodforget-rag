@@ -58,9 +58,10 @@ def document_to_text(document: dict[str, object]) -> str:
 
     title = str(document.get("title", ""))
     text = str(document.get("text", ""))
+    notes = str(document.get("notes", ""))
     tags = document.get("tags", [])
     tag_text = " ".join(str(tag) for tag in tags) if isinstance(tags, list) else str(tags)
-    return f"{title}\n{text}\n{tag_text}".strip()
+    return f"{title}\n{text}\n{tag_text}\n{notes}".strip()
 
 
 def cosine_scores(query_vector: SparseMatrix, document_vectors: SparseMatrix) -> np.ndarray:

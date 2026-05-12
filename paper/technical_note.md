@@ -1,35 +1,33 @@
 # GoodForget-RAG: Negative-Aware Retrieval for Selective Non-Use of Knowledge
 
-## Abstract
+## 1. Abstract
 
-Retrieval-augmented generation (RAG) systems usually optimize for retrieving evidence that is relevant to a user query. In many practical settings, however, a system also needs to avoid using certain evidence: obsolete policy, recalled instructions, deprecated internal procedures, or records that should no longer influence generated answers. This note introduces **GoodForget-RAG**, a toy implementation of negative-aware retrieval for **retrieval-time forgetting**. The method does not modify language model parameters. Instead, it changes retrieval behavior by penalizing candidate documents that are semantically close to an explicit forget set while preserving useful evidence through a positive intent term. In a small synthetic evaluation, this mechanism reduces forbidden-document retrieval compared with vanilla and positive-only retrieval baselines.
-
-## 1. Motivation
-
-RAG systems make language models more useful by supplying external context. That same mechanism can also amplify outdated or restricted evidence when the retriever ranks it highly. A conventional retriever asks: which documents are most similar to the query? In a knowledge governance setting, a second question is equally important: which documents should not be used even if they are semantically close?
-
-This note treats forgetting as a retrieval behavior, not as model erasure. The goal is to explore how a retriever can avoid selected evidence at inference time while still preserving adjacent, useful knowledge.
+Retrieval-augmented generation (RAG) systems usually optimize for selecting evidence that is relevant to a user query. In some settings, a system must also avoid using particular evidence, such as outdated instructions, confidential memos, non-public plans, or mixed documents containing restricted concepts. This note presents **GoodForget-RAG**, a toy retrieval-control mechanism that penalizes candidate documents close to an explicit forget set. The current implementation uses deterministic TF-IDF vectors and cosine similarity. It does not modify model parameters, does not solve model unlearning, and does not provide a safety guarantee. The goal is narrower: evaluate retrieval-time suppression of forbidden evidence under a chosen lexical vector representation.
 
 **Good forgetting is the ability to suppress forbidden evidence while preserving utility on adjacent, non-forbidden knowledge.**
 
-This framing is useful for RAG systems because many undesirable uses of information occur at the context-selection layer. If a forbidden document is not placed in the prompt context, it has less opportunity to influence the answer. This is still a limited control: it does not prove that a model lacks internal knowledge, and it does not guarantee safe behavior under all prompts.
+## 2. Motivation
 
-## 2. Problem Framing
+RAG systems influence generation by deciding which external evidence enters the context window. A standard retriever asks which documents are most relevant to the query. A retrieval-control system also asks which documents should not be used, even when they are close to the topic.
 
-Assume a corpus of candidate documents, a user query, a positive intent, and one or more forget-intent descriptions. The retriever must select a top-k context that is useful for the query while avoiding documents that are close to the forget set.
+This distinction matters because many governance problems appear at retrieval time. A corpus may contain obsolete rules, private memos, unreleased plans, or mixed documents with both allowed and forbidden evidence. Removing all related content can damage utility, while retrieving the nearest evidence can leak restricted information. GoodForget-RAG explores a simple middle ground: reward positive relevance and penalize closeness to forget intents.
 
-The project uses the following terms:
+## 3. Problem Framing
 
-- **Retrieval-time forgetting**: changing retrieval behavior at inference time to avoid selected evidence.
-- **Negative-aware retrieval**: scoring candidate documents with an explicit negative or forget-aware term.
-- **Selective non-use of evidence**: excluding or demoting evidence that should not be used.
-- **Behavioral forgetting in RAG**: producing a retrieval behavior that avoids forbidden evidence without claiming parameter-level erasure.
+Given a corpus, a user query, a positive intent, and a forget set, the retriever must select a top-k context. The desired behavior is selective non-use of forbidden evidence while preserving utility on adjacent non-forbidden knowledge.
 
-The task is not model unlearning. It is a small technical note and toy evaluation for an inference-time control mechanism.
+This project uses the following framing:
 
-## 3. Method: GoodForget-RAG
+- **Retrieval-time forgetting**: changing retrieval behavior at inference time.
+- **Negative-aware retrieval**: including an explicit forget penalty in document scoring.
+- **Selective non-use of evidence**: avoiding evidence that should not be used.
+- **Behavioral forgetting in RAG**: observable retrieval behavior, not parameter-level erasure.
 
-GoodForget-RAG scores each candidate document with:
+The forget-intent vector is not the arithmetic negative vector `-v`. It is a separate representation of what should not be used.
+
+## 4. Method: GoodForget-RAG
+
+For each candidate document `d`, GoodForget-RAG computes:
 
 ```text
 S(d) = alpha * sim(q, d) + beta * sim(p, d) - gamma * max_i sim(f_i, d)
@@ -38,78 +36,111 @@ S(d) = alpha * sim(q, d) + beta * sim(p, d) - gamma * max_i sim(f_i, d)
 Where:
 
 - `q` is the original user query.
-- `p` is the positive intent, or the useful information intent.
-- `f_i` is a forget-intent text.
+- `p` is the positive intent / useful information intent.
+- `f_i` is a forget-intent vector.
 - `d` is a candidate document.
 - `sim` is cosine similarity.
-- `alpha`, `beta`, and `gamma` control the strength of query relevance, positive relevance, and forget penalty.
+- `alpha`, `beta`, and `gamma` are configurable weights.
 
-The forget term is not created by subtracting vectors or by constructing an arithmetic negative embedding. Each forget item is encoded as a normal text description, and the maximum similarity to any forget item becomes the penalty. This makes the method easy to inspect and keeps the toy implementation simple.
+The implementation uses scikit-learn TF-IDF vectors. TF-IDF is transparent and deterministic, but it is a lexical proxy. It does not validate dense semantic retrieval performance.
 
-The implementation in this repository uses scikit-learn TF-IDF vectors with cosine similarity. This choice is intentionally modest: it avoids API keys and paid services, runs on a laptop, and makes the experiment deterministic. The same scoring interface could be used with other local encoders, but this note does not evaluate those variants.
+The retrieval function returns selected documents and per-document diagnostics:
 
-## 4. Toy Evaluation
+- query similarity;
+- positive similarity;
+- maximum forget similarity;
+- final score;
+- threshold removal flag;
+- filter removal flag;
+- forbidden label.
 
-The toy corpus contains synthetic RAG examples where useful and forbidden documents are close in topic:
+## 5. Experimental Setup
 
-- current EV tax-credit guidance versus an obsolete flat-credit brochure;
-- modern password reset controls versus a deprecated phone-support memo;
-- general medication safety guidance versus a recalled dosage card;
-- current privacy and retention guidance versus an archived privacy statement.
+The dataset is synthetic and intentionally small. It contains three splits.
 
-Each query includes:
+The `literal` split uses obvious forbidden terms such as leaked, confidential, private, internal memo, and secret. This split is expected to be relatively easy for keyword filtering.
 
-- an original query;
-- a positive intent;
-- a forget set;
-- expected relevant document IDs;
-- forbidden document IDs.
+The `paraphrase` split uses code names and indirect descriptions, including Project Maple, branch optimization plan, non-public market-entry plan, and unreleased board scenario. This split exposes the limitation of lexical matching.
 
-The experiment compares three methods:
+The `mixed_evidence` split includes documents that combine allowed public information with forbidden concepts. This tests document-level limitations: a whole document may be penalized or filtered even when only one span is problematic.
 
-1. **Vanilla RAG** retrieves by similarity to the original query only.
-2. **Positive-only RAG** retrieves by similarity to the positive intent only.
-3. **GoodForget-RAG** retrieves with positive relevance and a negative-aware forget penalty.
+All experiments are local and deterministic. The vectorizer is fit on document titles, document text, query texts, positive intents, and forget-set strings. No API keys, paid services, or runtime downloads are used.
 
-The top-k value is 2. The GoodForget-RAG toy configuration uses `alpha = 0.4`, `beta = 0.8`, and `gamma = 1.2`.
+## 6. Baselines
+
+The experiment compares six methods.
+
+**Vanilla RAG** retrieves by original query similarity only. It is a weak baseline when the query includes negative instructions because those negative terms can increase similarity to forbidden documents.
+
+**Positive-only RAG** retrieves by positive intent only. This baseline tests whether simply removing negative phrasing from the query is enough.
+
+**Query Rewrite RAG** uses the positive intent as a simplified rewritten query. It is intentionally similar to Positive-only RAG, included because raw vanilla retrieval is disadvantaged by negative terms.
+
+**Keyword Blocklist** retrieves candidates and removes documents containing obvious blocked keywords. It is expected to work better on literal cases than paraphrases.
+
+**Metadata Filter** removes documents labeled `is_forbidden=true` before retrieval. This is an oracle / label-aware baseline. It can outperform GoodForget-RAG when reliable labels are available, but it is not a general solution when labels are absent, incomplete, or too coarse.
+
+**GoodForget-RAG** combines query relevance, positive relevance, and a forget-intent penalty.
+
+## 7. Metrics
 
 The evaluation reports:
 
-- `leakage_rate`: fraction of queries where a forbidden document appears in the selected top-k context;
-- `utility_recall`: mean fraction of expected useful documents retrieved;
+- `leakage_rate`: fraction of queries where at least one forbidden document appears in selected top-k context.
+- `utility_recall`: retrieved expected relevant documents divided by total expected relevant documents, averaged across queries.
+- `safe_context_recall`: recall over expected relevant non-forbidden documents.
+- `over_filter_rate`: fraction of expected safe documents not preserved in context.
+- `forbidden_removal_precision`: among removed documents, fraction that were actually forbidden.
 - `empty_context_rate`: fraction of queries where no context remains.
+- `answer_leakage_rate`: deterministic proxy based on selected evidence titles and snippets.
 
-## 5. Results
+The current experiment evaluates retrieval-context leakage, not full LLM answer leakage. The `answer_leakage_rate` is only a deterministic proxy; it does not simulate free-form generation, model priors, prompt injection, or adversarial behavior.
 
-The deterministic run produces:
+## 8. Results
+
+The current toy run produces:
 
 ```text
-           method  leakage_rate  utility_recall  empty_context_rate  num_queries
-      Vanilla RAG         0.750           0.625               0.000            4
-Positive-only RAG         0.500           0.750               0.000            4
-   GoodForget-RAG         0.000           1.000               0.000            4
+           method  leakage_rate  utility_recall  safe_context_recall  over_filter_rate  forbidden_removal_precision  empty_context_rate  answer_leakage_rate  num_queries
+      Vanilla RAG         0.833           0.833                0.833             0.167                        0.000               0.000                0.833            6
+Positive-only RAG         0.333           0.833                0.833             0.167                        0.000               0.000                0.333            6
+Query Rewrite RAG         0.333           0.833                0.833             0.167                        0.000               0.000                0.333            6
+Keyword Blocklist         0.333           0.833                0.833             0.167                        1.000               0.000                0.333            6
+  Metadata Filter         0.000           0.917                0.917             0.083                        1.000               0.000                0.000            6
+   GoodForget-RAG         0.333           0.833                0.833             0.167                        0.000               0.000                0.333            6
 ```
 
-The result shows the intended behavior on this small dataset. Vanilla RAG retrieves forbidden documents for most queries because the forbidden documents are on-topic. Positive-only RAG improves utility but still retrieves forbidden documents when the forbidden evidence is close to the positive intent. GoodForget-RAG demotes documents close to the forget set and retrieves the expected useful documents in this toy configuration.
+The result should be read narrowly. GoodForget-RAG reduces leakage relative to vanilla retrieval, but it is not perfect. Positive-only and query rewrite retrieval are strong in some cases because the positive intent is provided as an oracle input. Metadata filtering performs best because it has direct access to forbidden labels.
 
-These results should be interpreted narrowly. They show that a negative-aware scoring term can change retrieval behavior in a controlled synthetic setting. They do not show broad robustness, model unlearning, or comprehensive protection against all uses of forbidden knowledge.
+Split-level results are especially important. Keyword filtering works in literal cases but fails when forbidden evidence is paraphrased. GoodForget-RAG can also fail when the TF-IDF representation does not capture the relationship between a forget intent and an indirectly worded document.
 
-## 6. Limitations
+## 9. Sensitivity Analysis
 
-This note has several important limitations.
+The sensitivity script varies:
 
-First, the dataset is synthetic and small. It is designed to make the retrieval behavior easy to inspect, not to represent the complexity of real enterprise or safety-critical corpora.
+- `gamma`: 0.5, 1.0, 1.5, 2.0;
+- `forget_threshold`: 0.10, 0.15, 0.20, 0.25, 0.30.
 
-Second, TF-IDF captures lexical overlap rather than deeper semantic meaning. This is useful for reproducibility but limits the conclusions that can be drawn about embedding-based production systems.
+This shows a tradeoff. Lower thresholds can remove more forbidden material but may reduce safe context recall. Higher thresholds preserve more context but may depend more heavily on ranking rather than explicit removal. The sensitivity results are written to `results/sensitivity.csv`.
 
-Third, the forget set is manually specified. In real deployments, defining what should not be used is a policy and data-governance problem as much as a retrieval problem.
+## 10. Red-Team Limitations
 
-Fourth, suppressing retrieved evidence is not equivalent to deleting knowledge from a language model. A model may still produce content from its parameters, from the user prompt, or from other retrieved documents. This technique should therefore be treated as one possible layer in a larger system.
+This project has several limitations by design.
 
-Finally, the chosen weights are illustrative. Different corpora and policies would require calibration, validation, and monitoring.
+Oracle positive and forget intents are assumed. A real system would need to create or validate those intents, and errors there could dominate the retrieval behavior.
 
-## 7. Conclusion
+The dataset is synthetic and may favor the proposed method. It is useful for inspection and reproducibility, not broad empirical claims.
 
-GoodForget-RAG is a small demonstration of negative-aware retrieval for selective non-use of evidence in RAG systems. It reframes forgetting as a retrieval-time behavior: preserve useful adjacent knowledge while demoting evidence that matches an explicit forget intent. The approach is simple, local, and reproducible, making it suitable as a technical note and starting point for further experiments.
+The current experiment evaluates retrieval-context leakage, not full LLM answer leakage. The answer proxy concatenates selected evidence titles and snippets and checks for forbidden markers. It is not a generated-answer evaluation.
 
-The main contribution is conceptual and practical: RAG design should ask not only what evidence to retrieve, but also what evidence should be avoided.
+TF-IDF is a lexical proxy, not dense semantic embedding. Dense embedding performance is not validated.
+
+The method operates at document level, not span level. Mixed-evidence documents can force a tradeoff between utility and suppression.
+
+Metadata filtering can outperform GoodForget-RAG when reliable labels are available. In practice, labels may be unavailable, stale, or too coarse, but this repository does not solve that data-governance problem.
+
+GoodForget-RAG is not a substitute for privacy review, policy enforcement, or model unlearning. It is a retrieval-time control experiment.
+
+## 11. Conclusion
+
+GoodForget-RAG is a small, reproducible experiment in negative-aware retrieval for selective non-use of evidence. The contribution is not a claim that forgetting is guaranteed, and it is not a claim of parameter-level deletion. It is a concrete toy framework for asking a practical RAG question: how can a retriever preserve useful adjacent evidence while reducing the chance that forbidden evidence enters the context?

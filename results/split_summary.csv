@@ -1,0 +1,19 @@
+split,method,leakage_rate,utility_recall,safe_context_recall,over_filter_rate,forbidden_removal_precision,empty_context_rate,answer_leakage_rate,num_queries
+literal,Vanilla RAG,1.0,1.0,1.0,0.0,0.0,0.0,1.0,2
+literal,Positive-only RAG,0.5,1.0,1.0,0.0,0.0,0.0,0.5,2
+literal,Query Rewrite RAG,0.5,1.0,1.0,0.0,0.0,0.0,0.5,2
+literal,Keyword Blocklist,0.0,1.0,1.0,0.0,1.0,0.0,0.0,2
+literal,Metadata Filter,0.0,1.0,1.0,0.0,1.0,0.0,0.0,2
+literal,GoodForget-RAG,0.5,1.0,1.0,0.0,0.0,0.0,0.5,2
+mixed_evidence,Vanilla RAG,0.5,0.75,0.75,0.25,0.0,0.0,0.5,2
+mixed_evidence,Positive-only RAG,0.5,0.75,0.75,0.25,0.0,0.0,0.5,2
+mixed_evidence,Query Rewrite RAG,0.5,0.75,0.75,0.25,0.0,0.0,0.5,2
+mixed_evidence,Keyword Blocklist,0.5,0.75,0.75,0.25,0.0,0.0,0.5,2
+mixed_evidence,Metadata Filter,0.0,1.0,1.0,0.0,1.0,0.0,0.0,2
+mixed_evidence,GoodForget-RAG,0.5,0.75,0.75,0.25,0.0,0.0,0.5,2
+paraphrase,Vanilla RAG,1.0,0.75,0.75,0.25,0.0,0.0,1.0,2
+paraphrase,Positive-only RAG,0.0,0.75,0.75,0.25,0.0,0.0,0.0,2
+paraphrase,Query Rewrite RAG,0.0,0.75,0.75,0.25,0.0,0.0,0.0,2
+paraphrase,Keyword Blocklist,0.5,0.75,0.75,0.25,1.0,0.0,0.5,2
+paraphrase,Metadata Filter,0.0,0.75,0.75,0.25,1.0,0.0,0.0,2
+paraphrase,GoodForget-RAG,0.0,0.75,0.75,0.25,0.0,0.0,0.0,2
