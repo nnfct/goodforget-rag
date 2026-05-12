@@ -128,6 +128,34 @@ For laptop smoke tests, replace `benchmark_default.yaml` with `benchmark_fast.ya
 
 The report is written to `docs/validation_report.html`. Open it in a browser to inspect main results, attack-type breakdowns, label-noise behavior, bootstrap intervals, plots, and mined failure cases.
 
+## Hard Negative Pair Suite
+
+The hard negative pair suite targets a narrower question: does the negative-aware forget penalty contribute beyond Positive-only RAG, Query Rewrite RAG, and the arithmetic Negative Vector Baseline?
+
+Run:
+
+```bash
+python experiments/run_hard_negative_pair_suite.py
+```
+
+Outputs:
+
+- `results/hard_negative_pair_summary.csv`
+- `results/hard_negative_pair_cases.csv`
+- `docs/hard_negative_pair_report.html`
+- `paper/hard_negative_pair_appendix.md`
+
+The suite generates 8 domains, 10 scenarios per domain, and 4 query variants per scenario. Each scenario includes a safe public document, a forbidden internal near-duplicate, a safe near-duplicate that explicitly avoids the restricted attribute, an obsolete document, and a distractor.
+
+Conservative result summary from the current run:
+
+- `GoodForget-RAG gamma=0` often leaks badly in hard negative settings, especially under `tfidf_word` and `tfidf_char`.
+- `gamma > 0` improves margins and usually reduces leakage relative to `gamma=0`.
+- GoodForget-RAG improves over Positive-only and Query Rewrite on leakage in several representations, but not on utility.
+- Metadata Filter remains strongest when labels are reliable.
+- Negative Vector Baseline can be close to GoodForget-RAG in some settings, so this suite does not universally distinguish the two.
+- Higher gamma can hurt utility by suppressing safe near-duplicate documents that mention excluded attributes.
+
 ## Expected Outputs
 
 The main experiment writes:

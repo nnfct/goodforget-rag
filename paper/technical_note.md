@@ -148,3 +148,5 @@ GoodForget-RAG is not a substitute for privacy review, policy enforcement, or mo
 GoodForget-RAG is a small, reproducible experiment in negative-aware retrieval for selective non-use of evidence. The contribution is not a claim that forgetting is guaranteed, and it is not a claim of parameter-level deletion. It is a concrete toy framework for asking a practical RAG question: how can a retriever preserve useful adjacent evidence while reducing the chance that forbidden evidence enters the context?
 
 For the expanded validation benchmark suite, see `paper/validation_appendix.md` and `docs/validation_report.html`.
+
+For the targeted hard-negative evaluation, see `paper/hard_negative_pair_appendix.md` and `docs/hard_negative_pair_report.html`. The current hard-negative run suggests that `gamma > 0` can improve the safe-forbidden margin and reduce leakage relative to `gamma = 0`, but it can also reduce utility. Positive-only and Query Rewrite remain competitive on utility, Metadata Filter remains strongest with reliable labels, and the Negative Vector Baseline can be close enough that some slices do not distinguish it from explicit forget-intent suppression.
